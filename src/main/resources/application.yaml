@@ -77,9 +77,9 @@ spring:
             # 구글 클라우드 콘솔(console.cloud.google.com) → API 및 서비스 → 사용자 인증 정보 →
             # "OAuth 2.0 클라이언트 ID" 를 만들면 받는 값이다. "..." 부분을 실제 값으로 바꿔야 한다.
             # 그 화면의 "승인된 리디렉션 URI" 에는 http://localhost:8080/login/oauth2/code/google 을 등록한다.
-            client-id: 826372885337-nqb0r6lphhaln9i7d7at7t9mqio948a9.apps.googleusercontent.com
+            client-id: test_id
             # ⚠️ 비밀번호와 같은 값이다. 깃(Git)에 올리지 말고 환경 변수 등으로 따로 관리한다.
-            client-secret: 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
+            client-secret: test_secret
             # 구글에 요청할 정보 범위. email(이메일), profile(이름·사진)
             # ⚠️ openid 를 넣으면 OIDC 방식이 되어 OAuth2UserCustomService 대신 OidcUserService 가 쓰인다.
             #    그러면 users 표에 저장하는 코드가 실행되지 않으므로 넣지 않는다.
