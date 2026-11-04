@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>블로그 글 수정 요청 또는 글 추가 요청 화면</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css">
+</head>
+<body>
+        <div class="p-5 mb-5 text-center bg-light">
+            <h1 class="mb-3">My Blog</h1>
+            <h4 class="mb-3">블로그에 오신 것을 환영합니다.</h4>
+        </div>
+        <div class="container mt-5">
+            <div class="row">
+                <div class="col-lg-8">
+                    <article>
+                        <!--/*
+                        [타임리프 속성] th:value="${article.id}"   (숨은 input 태그 안)
+                          ${article.id} : 새 글일 때는 값이 null(없음)이라서 입력칸 값이 비어 있습니다.
+                                          수정일 때는 기존 글 번호가 들어갑니다.
+                          article.js 는 이 값을 읽지 않습니다. 수정 기능은 주소의 ?id 값을 읽습니다. (article.js 의 modify 부분 참고)
+                        */-->
+                        <input type="hidden" id="article-id" th:value="${article.id}">
+
+                        <header class="mb-4">
+                            <!--/*
+                            [타임리프 속성] th:value="${article.title}"   (제목 input 태그 안)
+                              th:value : input 의 value 속성(칸 안에 보이는 글자)을 서버 값으로 채웁니다.
+                              수정 화면 : 기존 제목이 칸에 채워져 보입니다.
+                              새 글 화면 : article.title 이 null 이라서 칸이 빈칸으로 보입니다.
+                              id="title" : article.js 가 document.getElementById('title').value 로 이 칸의 글자를 읽어서 서버로 보냅니다.
+                            */-->
+                            <input type="text" class="form-control" placeholder="제목" id="title" th:value="${article.title}">
+                        </header>
+
+                        <!-- ===== [11.4 수정] 이미지 업로드 / AI 썸네일 영역 추가 =====
+                          변경 이유 : article.js 의 등록(create-btn)·수정(modify-btn) 코드가
+                                      document.getElementById('image-url').value 를 읽습니다.
+                                      이 화면에 id="image-url" 칸이 없어서 null.value 오류(TypeError)가 나고,
+                                      [등록]/[수정] 버튼을 눌러도 아무 요청이 가지 않았습니다. (11.4 03단계 실패 원인)
+                          책 385쪽 화면처럼 "이미지 업로드 + 파일 선택 + AI 썸네일 생성" 영역을 넣고,
+                          article.js 가 찾는 id(image-upload, image-url, image-preview, preview-img,
+                          remove-image-btn, ai-thumbnail-btn, ai-thumbnail-loading)를 모두 맞췄습니다. -->
+                        <section class="mb-3">
+                            <label for="image-upload" class="d-block">이미지 업로드</label>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <input type="file" id="image-upload" accept="image/*">
+                                <button type="button" id="ai-thumbnail-btn" class="btn btn-outline-secondary btn-sm">AI 썸네일 생성</button>
+                            </div>
+                            <!-- 업로드(또는 AI 생성)된 이미지 주소. 수정 화면이면 기존 주소가 채워집니다. -->
+                            <input type="hidden" id="image-url" th:value="${article.imageUrl}">
+                            <div id="ai-thumbnail-loading" class="mt-2" style="display: none;">
+                                <div class="spinner-border spinner-border-sm text-primary" role="status"></div>
+                                <span class="ml-2">AI가 썸네일을 만들고 있습니다...</span>
+                            </div>
+                            <div id="image-preview" class="mt-2" style="display: none;">
+                                <img id="preview-img" src="" alt="미리보기" style="max-width: 300px;" class="img-thumbnail d-block mb-1">
+                                <button type="button" id="remove-image-btn" class="btn btn-outline-danger btn-sm">이미지 제거</button>
+                            </div>
+                        </section>
+                        <section class="mb-5">
+                            <!--/*
+                            [타임리프 속성] th:text="${article.content}"   (textarea 태그 안)
+                              textarea(여러 줄 입력칸)는 value 속성이 없고, 태그 사이의 글자가 칸의 내용이 됩니다.
+                              그래서 th:value 가 아니라 th:text 를 씁니다.
+                              수정 화면 : 기존 내용이 채워집니다. 새 글 화면 : 빈칸입니다.
+                              id="content" : article.js 가 document.getElementById('content').value 로 이 칸의 글자를 읽습니다.
+                            */-->
+                            <textarea class="form-control h-25" rows="10" placeholder="내용" id="content" th:text="${article.content}"></textarea>
+                        </section>
+
+                        <!-- [8장 · 글쓰기 도우미] 누르면 모달 창(아래 aiAssistModal)이 열립니다. -->
+                        <button type="button" id="ai-assist-btn" class="btn btn-info btn-sm">AI 도움받기</button>
+
+                        <!--/*
+                        [타임리프 조건] th:if="${article.id} != null"   (수정 버튼)
+                          th:if : 조건이 참(true)이면 이 태그를 화면에 남기고, 거짓이면 태그를 통째로 지웁니다.
+                          ${article.id} != null : 글 번호가 있으면(수정 화면) 참입니다.
+                          결과 : 수정 화면에서는 "수정" 버튼만 남고, 아래의 "등록" 버튼은 지워집니다.
+                          id="modify-btn" : article.js 의 modifyButton 에 연결됩니다.
+                            클릭하면 주소의 ?id 값으로 PUT /api/articles/{id} 요청을 보내고, 성공하면 /articles/{id} 로 이동합니다.
+                        */-->
+                        <button th:if="${article.id} != null" type="button" id="modify-btn" class="btn btn-primary btn-sm">수정</button>
+                        <!--/*
+                        [타임리프 조건] th:if="${article.id} == null"   (등록 버튼)
+                          글 번호가 없으면(새 글 화면) 참입니다. 그러면 "등록" 버튼이 남고, 위의 "수정" 버튼은 지워집니다.
+                          id="create-btn" : article.js 의 createButton 에 연결됩니다.
+                            클릭하면 제목과 내용을 담아 POST /api/articles 요청을 보내고, 성공하면 /articles 목록으로 이동합니다.
+                        */-->
+                        <button th:if="${article.id} == null" type="button" id="create-btn" class="btn btn-primary btn-sm">등록</button>
+                    </article>
+                </div>
+            </div>
+        </div>
+
+        <!-- [8장 · 글쓰기 도우미 모달] 부트스트랩 모달 창입니다. 평소에는 숨겨져 있다가 "AI 도움받기"를 누르면 뜹니다. -->
+        <div class="modal fade" id="aiAssistModal" tabindex="-1" role="dialog" aria-labelledby="aiAssistModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-lg" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="aiAssistModalLabel">AI 글쓰기 도우미</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <!-- 사용자가 고민을 적는 칸입니다. 이 내용이 AI의 question 자리(프롬프트)로 들어갑니다. -->
+                        <div class="form-group">
+                            <label for="ai-question">어떤 부분이 고민되시나요?</label>
+                            <textarea class="form-control" id="ai-question" rows="3" placeholder="예: 이 다음에 어떤 내용을 써야 할까요?"></textarea>
+                        </div>
+                        <!-- 누르면 article.js가 /api/ai-suggestions를 호출합니다. -->
+                        <button type="button" id="get-suggestion-btn" class="btn btn-primary">제안 받기</button>
+                        <!-- AI가 답을 만드는 동안 보이는 로딩 문구입니다(보통 몇 초~20초). -->
+                        <div id="ai-loading" class="mt-3" style="display: none;">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="sr-only">Loading...</span>
+                            </div>
+                            <span class="ml-2">AI가 생각하고 있습니다...</span>
+                        </div>
+                        <!-- 제안 목록이 들어가는 영역입니다. 클릭한 제안은 본문 끝에 추가됩니다. -->
+                        <div id="ai-suggestion" class="mt-3" style="display: none;">
+                            <h6>AI 제안:</h6>
+                            <div id="ai-suggestion-content"></div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">닫기</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 스크립트는 body 맨 아래에 둡니다. 화면이 먼저 그려진 뒤 버튼에 기능을 붙이기 위해서입니다. -->
+        <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js"></script>
+        <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js"></script>
+
+        <!-- 버튼 동작(업로드, AI 도움받기, 저장)을 담은 자바스크립트 파일입니다. -->
+        <script src="/js/article.js"></script>
+
+</body>
+</html>

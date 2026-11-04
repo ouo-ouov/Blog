@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>블로그 글 목록</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css">
+</head>
+<body>
+        <!--
+        [파일 설명] articleList.html : 글 목록 화면입니다.
+          주소 : /articles   (예: http://localhost:8080/articles)
+          컨트롤러 : BlogViewController.getArticles 메소드
+          넘어오는 값 : model.addAttribute("articles", articles) 로 넣은 "articles" 목록
+                         (ArticleListViewResponse 여러 개, 각각 id, title, content 를 가짐)
+          return "articleList" 는 templates/articleList.html 을 찾아서, 아래 th: 속성들을 채운 뒤 브라우저에 보냅니다.
+        -->
+        <!--
+          ===== [로그아웃 추가] 화면 상단 로그아웃 링크 =====
+          언제 보이나?
+            처음에는 style="display:none" 으로 숨겨 둡니다.
+            구글 로그인에 성공하면 OAuth2SuccessHandler 가 /articles?token=<액세스 토큰> 으로 보내고,
+            아래 token.js 가 그 토큰을 localStorage("access_token")에 저장합니다.
+            그다음 article.js 가 "access_token 또는 refresh_token 쿠키가 있으면" 이 링크를 보이게 바꿉니다.
+              → 로그인한 사람에게만 [로그아웃] 이 보이고, 로그아웃하면 다시 숨겨집니다.
+            ※ 이 프로젝트는 세션을 쓰지 않는(STATELESS) JWT 방식이라 서버(타임리프)는 로그인 여부를 모릅니다.
+              그래서 브라우저에 저장된 토큰을 보고 자바스크립트가 보이기/숨기기를 정합니다.
+          클릭하면?
+            href="#" 라서 다른 주소로 이동하지 않습니다. (article.js 가 event.preventDefault() 로 기본 동작도 막습니다)
+            id="logout-btn" : article.js 의 logoutButton 이 이 id 로 링크를 찾아 클릭 처리를 연결합니다.
+              → DELETE /api/refresh-token 요청 → 성공하면 토큰을 모두 지우고 /login 으로 이동합니다.
+        -->
+        <div class="container text-right pt-3">
+            <a href="#" id="logout-btn" class="btn btn-outline-secondary btn-sm" style="display: none;">로그아웃</a>
+        </div>
+
+        <div class="p-5 mb-5 text-center bg-light">
+            <h1 class="mb-3">My Blog</h1>
+            <h4 class="mb-3">블로그에 오신 것을 환영합니다.</h4>
+        </div>
+
+        <div class="container">
+            <!-- [수정] id="create-btn" → id="new-article-btn"
+                   create-btn 은 newArticle.html 의 [등록] 버튼 id 라서, article.js 가 이 버튼에도
+                   "새 글 POST 요청" 클릭 처리를 붙였고, 이 화면에는 제목 입력칸이 없어 콘솔 오류가 났습니다.
+                   이 버튼은 새 글 화면으로 이동만 하면 되므로 다른 id 로 바꿨습니다. (이동은 아래 th:onclick 이 합니다) -->
+            <button type="button" id="new-article-btn"
+                    th:onclick="|location.href='@{/new-article}'|"
+                    class="btn btn-secondary btn-sm mb-3">글 등록</button>
+
+            <!-- Model객체에 바인딩된 조회한 글목록 List<ArticleViewResponse>배열에 저장된
+                   ArticleViewResponse DTO 갯수만큼 반복해서 <div></div>를 보여 주자.  -->
+            <div class="row-6" th:each="item  : ${articles}" >
+                <div class="card">
+                    <!-- 위 item변수에 저장된 Dto역할을 하는 ArticleViewResponse 조회한 글하나정보 객체의 글id 보여주기    -->
+                    <div class="card-header" th:text="${item.id}"></div>
+
+                    <!-- 위 item변수에 저장된 Dto역할을 하는 ArticleViewResponse 조회한 글하나정보 객체의 글 제목,내용 보여주기  -->
+                    <div class="card-body">
+                        <h5 class="card-title" th:text="${item.title}"></h5>
+                        <p class="card-text" th:text="${item.content}"></p>
+                        <a th:href="@{/articles/{id}(id=${item.id})}" class="btn btn-primary">보러 가기</a>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- [11장 추가] 주소의 ?token= 값을 localStorage 에 저장 -->
+        <script src="/js/token.js"></script>
+        <script src="/js/article.js"></script>     <!--article.js 코드 적용 -->
+
+</body>
+</html>

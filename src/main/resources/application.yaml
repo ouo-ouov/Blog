@@ -1,0 +1,123 @@
+# =====================================================================
+# [6장] application.yml : 프로그램 설정 파일 (3장부터 application.properties 대신 이 형식을 씁니다)
+# 파일 위치 : src/main/resources/application.yml
+# 읽는 시점 : 프로그램을 시작할 때 한 번 읽습니다.
+# 6장 변경 : datasource(DB 접속 정보)와 h2 console 설정이 추가되었습니다.
+#
+# yml 형식 규칙
+#   1) "키: 값" 형태로 씁니다. 키 뒤에는 콜론(:)을 붙이고, 콜론 뒤에 한 칸을 띄웁니다.
+#   2) 들여쓰기로 상하 관계를 나타냅니다. 바로 위 항목보다 두 칸 더 들여쓴 항목은 그 항목의 하위 항목입니다.
+#   3) 들여쓰기는 스페이스(칸)로 합니다. Tab 키를 쓰면 오류가 납니다.
+#   4) 줄 맨 앞의 # 은 설명 글입니다. 프로그램은 이 줄을 무시합니다.
+# =====================================================================
+
+# 최상위 키 spring : 이 아래의 설정은 모두 spring 에 속합니다. 스프링 부트가 정해 둔 설정 이름입니다.
+spring:
+
+  # jpa : JPA 관련 설정 묶음입니다. JPA 는 자바 객체를 DB 의 표(테이블)와 연결해 저장하는 기능입니다.
+  #   spring 의 하위 항목이므로 두 칸 들여쓰기를 합니다.
+  jpa:
+
+    # show-sql : true 이면 JPA 가 DB 에 보내는 SQL 명령을 콘솔(실행 결과 창)에 출력합니다.
+    #   예) 회원을 저장하면 insert 구문이, 조회하면 select 구문이 콘솔에 나타납니다.
+    show-sql: true
+
+    # properties : JPA 구현체(Hibernate)에 직접 전달할 세부 설정 묶음입니다. jpa 의 하위 항목입니다.
+    properties:
+
+      # hibernate : Hibernate 전용 설정 묶음입니다. properties 의 하위 항목입니다.
+      hibernate:
+
+        # format_sql : true 이면 콘솔에 출력되는 SQL 을 줄바꿈과 들여쓰기로 보기 좋게 출력합니다.
+        #   false 이면 한 줄로 길게 출력됩니다.
+        format_sql: true
+
+    # defer-datasource-initialization : true 이면 data.sql 실행을 "테이블 생성 이후"로 미룹니다.
+    #   배경 : 기본 순서는 data.sql 이 먼저 실행됩니다. 그러면 아직 없는 member 테이블에 insert 하려다 오류가 납니다.
+    #   이 설정으로 Hibernate 가 member 테이블을 먼저 만든 뒤에 data.sql 이 실행됩니다.
+    defer-datasource-initialization: true
+
+  # ---------------------------------------------------------------
+
+
+  # h2 : H2 데이터베이스의 웹 콘솔 설정 묶음입니다. spring 의 하위 항목입니다.
+  h2:
+
+    # console : 웹 브라우저에서 DB 내용을 보고 SQL 을 실행할 수 있는 H2 콘솔의 설정입니다.
+    console:
+
+      # enabled : true 이면 H2 콘솔을 켭니다. 접속 주소는 http://localhost:8080/h2-console 입니다.
+      #   접속 화면에서 JDBC URL 에 jdbc:h2:mem:testdb, 사용자 이름에 sa 를 입력합니다.
+      enabled: true
+  # [8장] spring.ai : 스프링 AI 모듈 설정
+  ai:
+    # openai : OpenAI 형식으로 대화하는 AI 서버 설정입니다. OpenRouter 도 이 형식을 지원해서 이 설정을 씁니다.
+    openai:
+      # base-url : AI 서버 주소. 스프링 AI 가 뒤에 /v1/chat/completions 를 붙여 요청합니다. (실행 확인)
+      base-url: https://openrouter.ai/api
+      # api-key : ${OPENROUTER_API_KEY} 는 같은 이름의 환경 변수 값을 넣으라는 뜻입니다. 키를 소스에 적지 않기 위해서입니다.
+      #   확인 결과 : 환경 변수가 없어도 앱은 시작되었습니다. 이때는 AI 요청에 올바른 키가 전달되지 않습니다.
+      api-key: ${OPENROUTER_API_KEY}
+      chat:
+        options:
+          # model : openrouter/free 무료 모델. 텍스트만 가능하고 이미지 생성은 지원하지 않습니다.
+          model: openrouter/free
+
+  # ===== [11장 추가] OAuth2 클라이언트(구글 로그인) 설정 =====
+  # spring-boot-starter-oauth2-client 가 이 값을 읽어 "google" 이라는 로그인 등록 정보를 만든다.
+  # 구글 로그인 주소, 토큰 주소, 사용자 정보 주소는 스프링 부트가 이미 알고 있어서(CommonOAuth2Provider)
+  # client-id, client-secret, scope 만 적으면 된다.
+  security:
+    oauth2:
+      client:
+        registration:
+          # 등록 이름. 로그인 시작 주소 /oauth2/authorization/google,
+          # 구글이 돌려보낼 주소 /login/oauth2/code/google 의 "google" 이 이 이름이다.
+          google:
+            # 구글 클라우드 콘솔(console.cloud.google.com) → API 및 서비스 → 사용자 인증 정보 →
+            # "OAuth 2.0 클라이언트 ID" 를 만들면 받는 값이다. "..." 부분을 실제 값으로 바꿔야 한다.
+            # 그 화면의 "승인된 리디렉션 URI" 에는 http://localhost:8080/login/oauth2/code/google 을 등록한다.
+            client-id: 826372885337-nqb0r6lphhaln9i7d7at7t9mqio948a9.apps.googleusercontent.com
+            # ⚠️ 비밀번호와 같은 값이다. 깃(Git)에 올리지 말고 환경 변수 등으로 따로 관리한다.
+            client-secret: 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
+            # 구글에 요청할 정보 범위. email(이메일), profile(이름·사진)
+            # ⚠️ openid 를 넣으면 OIDC 방식이 되어 OAuth2UserCustomService 대신 OidcUserService 가 쓰인다.
+            #    그러면 users 표에 저장하는 코드가 실행되지 않으므로 넣지 않는다.
+            scope:
+              - email
+              - profile
+
+# JWT 설정 그룹. JwtProperties 클래스(@ConfigurationProperties("jwt"))가 이 아래 값을 읽는다.
+jwt:
+  # 토큰 발급자(iss) 값. 토큰 안에 기록된다.
+  issuer: ajufresh@gmail.com
+  # 토큰 서명에 쓰는 비밀 키. (secret_key → JwtProperties.secretKey, 느슨한 바인딩)
+  # 수업용 값이다. 실제 서비스에서는 길고 무작위한 값을 환경 변수나 비밀
+  # 저장소로 분리해야 한다. 이 키가 알려지면 누구나 유효한 토큰을 만들 수 있다.
+  secret_key: study-springboot
+
+# ----------------------------------------------------------------------------
+# cloud.aws.* : 스프링이 미리 정해 둔 설정 이름이 아니라 이 프로젝트가 직접 만든 설정 이름이다.
+#   스프링 부트가 이 값을 자동으로 쓰지 않으며, 아래 두 곳에서 @Value 로 직접 꺼내 쓴다.
+#     cloud.aws.region     → S3Config.java  의 s3Client(@Value("${cloud.aws.region}") String region)
+#     cloud.aws.s3.bucket  → AwsS3Service.java 의 @Value("${cloud.aws.s3.bucket}") private String bucket
+# ----------------------------------------------------------------------------
+cloud:
+  aws:
+    # S3 버킷을 만든 리전. ap-northeast-2 = 아시아 태평양(서울)
+    # S3Client 객체가 요청을 보낼 주소 https://s3.ap-northeast-2.amazonaws.com 을 정할 때 쓴다.
+    region: ap-northeast-2
+    s3:
+      # S3 콘솔에서 만든 버킷 이름. 반드시 본인이 만든 버킷 이름(blog-본인아이디)으로 바꾼다.
+      # 버킷 이름은 전 세계 AWS 에서 하나뿐이어야 하므로 다른 사람의 이름을 그대로 쓰면
+      # 403(AccessDenied) 오류가 난다.
+      bucket: blog-shjgkwo1
+
+
+
+
+
+
+
+
+

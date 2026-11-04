@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>블로그 글</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css">
+</head>
+<body>
+        <!--
+        [파일 설명] article.html : 글 한 개의 상세 화면입니다.
+          요청 주소 : /articles/{id}   (예: /articles/1)
+          컨트롤러 : BlogViewController.getArticle 메소드
+          넘어오는 값 : model.addAttribute("article", new ArticleViewResponse(article)) 로 넣은 "article" 객체 한 개
+                        (id, title, content, createdAt 을 가진 ArticleViewResponse)
+          return "article" 은 templates/article.html 을 찾아서, 아래 th: 속성들을 채운 뒤 브라우저에 보냅니다.
+        -->
+        <div class="p-5 mb-5 text-center bg-light">
+            <h1 class="mb-3">My Blog</h1>
+            <h4 class="mb-3">블로그에 오신 것을 환영합니다.</h4>
+        </div>
+
+        <div class="container mt-5">
+            <div class="row">
+                <div class="col-lg-8">
+                    <article>
+                        <!-- 글 id 설정 -->
+                        <input type="hidden" id="article-id" th:value="${article.id}">
+
+                        <header class="mb-4">
+                            <h1 class="fw-bolder mb-1" th:text="${article.title}"></h1>
+                            <div class="text-muted fst-italic mb-2"
+                                 th:text="|Posted on ${#temporals.format(article.createdAt, 'yyyy-MM-dd HH:mm')} By ${article.author}|"></div>
+                        </header>
+                        <section>
+                            <p class="fs-5 mb-4" th:text="${article.content}"></p>
+                        </section>
+                        <button type="button" id="modify-btn"
+                                th:onclick="|location.href='@{/new-article?id={articleId}(articleId=${article.id})}'|"
+                                class="btn btn-primary btn-sm">수정</button>
+                        <button type="button" class="btn btn-secondary btn-sm"  id="delete-btn">삭제</button>
+                    </article>
+                </div>
+            </div>
+        </div>
+
+       <script src="/js/article.js"></script>     <!--article.js 코드 적용 -->
+
+</body>
+</html>

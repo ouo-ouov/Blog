@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<!--
+  파일 위치: src/main/resources/templates/oauthLogin.html   [11장 추가]
+
+  구글 로그인 버튼 하나만 있는 로그인 화면입니다.
+  GET /login → UserViewController.login() 이 "oauthLogin" 을 돌려줘서 이 화면이 열립니다.
+  (10장의 login.html 은 이메일·비밀번호 폼이었습니다.)
+
+  버튼을 누르면 일어나는 일
+    1. <a href="/oauth2/authorization/google"> 로 이동
+    2. 스프링 시큐리티(OAuth2AuthorizationRequestRedirectFilter)가 이 주소를 가로채
+       인가 요청을 oauth2_auth_request 쿠키에 저장하고 구글 로그인 페이지로 보냅니다.
+       ※ 이 주소를 처리하는 컨트롤러는 우리가 만들지 않았습니다. oauth2Login() 설정이 자동으로 만들어 줍니다.
+       ※ 주소 끝의 "google" 은 application.yml 의 registration 아래 이름(google)과 같아야 합니다.
+    3. 구글 로그인 → /login/oauth2/code/google → OAuth2SuccessHandler → /articles?token=…
+
+  ※ Thymeleaf 문법(th:…)을 쓰지 않는 순수 HTML 입니다. 그래서 xmlns:th 선언도 없습니다.
+  ※ /img/google.png 는 WebOAuthSecurityConfig 의 ignoring("/img/**") 덕분에 보안 검사 없이 내려받습니다.
+-->
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <!-- 부트스트랩 4.6.1 CSS: 카드, 버튼, 여백(mb-2, p-5 등) 모양을 미리 만들어 둔 스타일 묶음 -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.1/dist/css/bootstrap.min.css">
+
+    <!-- 배경을 보라 → 파랑 그라데이션으로 칠합니다. (위 두 줄은 오래된 브라우저용 예비 값) -->
+    <style>
+        .gradient-custom {
+            background: #6a11cb;
+            background: -webkit-linear-gradient(to right, rgba(106, 17, 203, 1), rgba(37, 117, 252, 1));
+            background: linear-gradient(to right, rgba(106, 17, 203, 1), rgba(37, 117, 252, 1))
+        }
+    </style>
+</head>
+<body class="gradient-custom">
+    <!-- d-flex vh-100: 화면 높이 전체를 쓰는 가로 배치 상자 -->
+    <section class="d-flex vh-100">
+        <!-- 카드를 화면 가운데(가로·세로)에 놓습니다. -->
+        <div class="container-fluid row justify-content-center align-content-center">
+            <div class="card bg-dark" style="border-radius: 1rem;">
+                <div class="card-body p-5 text-center">
+                    <h2 class="text-white">LOGIN</h2>
+                    <p class="text-white-50 mt-2 mb-5">서비스 사용을 위해 로그인을 해주세요!</p>
+
+                    <div class = "mb-2">
+                        <!-- 구글 로그인 버튼: 그림을 누르면 OAuth2 로그인 시작 주소로 이동합니다. -->
+                        <a href="/oauth2/authorization/google">
+                            <!-- [11.4 수정] 실제 파일 이름이 static/img/goole.png(오타)라서 이미지가 404 로 깨져
+                                 [구글로 로그인하기] 버튼이 보이지 않았습니다. 파일 이름을 google.png 로 바로잡았습니다. -->
+                            <img src="/img/google.png" alt="구글로 로그인하기">
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+</body>
+</html>

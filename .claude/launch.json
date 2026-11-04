@@ -1,0 +1,16 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "blog",
+      "url": "http://localhost:8080",
+      "port": 8080
+    },
+    {
+      "name": "blog-verify",
+      "runtimeExecutable": "C:\\Blog\\gradlew.bat",
+      "runtimeArgs": ["-p", "C:\\Blog", "bootRun", "--args=--server.port=8081"],
+      "port": 8081
+    }
+  ]
+}

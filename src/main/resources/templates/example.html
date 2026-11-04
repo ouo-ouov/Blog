@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>Title</title>
+</head>
+<body>
+<!--/*
+[파일 설명] example.html : 타임리프 문법을 익히는 예제 화면입니다. 블로그 기능과는 관계가 없습니다.
+  주소 : /thymeleaf/example
+  컨트롤러 : ExampleController.thymeleafExample 메소드
+  넘어오는 값 2개 :
+    "person" : Person 객체 한 개 (id 1, 이름 홍길동, 나이 11, 취미 ["운동", "독서"])
+    "today"  : LocalDate.now() 로 만든 오늘 날짜
+  return "example" 은 templates/example.html 을 찾아서, 아래 th: 속성들을 채운 뒤 브라우저에 보냅니다.
+*/-->
+<h1>타임리프 익히기</h1>
+<!--/*
+[타임리프 속성] th:text="${#temporals.format(today, 'yyyy-MM-dd')}"   (p 태그 안)
+  ${today} : 컨트롤러가 Model 에 넣은 "today"키의 값(오늘 날짜)입니다.
+  #temporals.format(날짜, 모양) : 날짜를 'yyyy-MM-dd' 모양(예: 2026-10-22)의 글자로 바꿉니다.
+*/-->
+<p th:text="${#temporals.format(today, 'yyyy-MM-dd')}"></p>
+<!--/*
+[타임리프 선택 대상] th:object="${person}"   (div 태그)
+  이 div 안에서 쓸 "기준 객체"를 person 으로 정합니다.
+  그 안에서는 *{이름} 형태로 기준 객체의 값을 짧게 꺼낼 수 있습니다.
+    *{name}    = person.getName()
+    *{age}     = person.getAge()
+    *{hobbies} = person.getHobbies()
+  ${...} 는 전체 Model 에서 찾고, *{...} 는 th:object 기준 객체 안에서만 찾습니다.
+*/-->
+<div th:object="${person}">
+  <!--/*
+  [타임리프 속성] th:text="|이름 : *{name}|"   (p 태그 안)
+    | ... | : 리터럴 치환입니다. 고정 글자 "이름 : " 과 *{name} 의 결과를 이어 붙입니다.
+    *{name} : person.getName() 결과 "홍길동"
+    결과 예 (실제 바르우저 확인) : <p>이름 : 홍길동</p>
+  */-->
+  <p th:text="|이름 : *{name}|"></p>
+  <!--/*
+  [타임리프 속성] th:text="|나이 : *{age}|"   (p 태그 안)
+    *{age} : person.getAge() 결과 11 입니다.
+    결과 예 (실제 바르우저 확인) : <p>나이 : 11</p>
+  */-->
+  <p th:text="|나이 : *{age}|"></p>
+  <p>취미</p>
+  <!--/*
+  [타임리프 반복] th:each="hobby : *{hobbies}"   (li 태그)
+    *{hobbies} : person.getHobbies() 결과인 취미 목록(["운동", "독서"])입니다.
+    목록을 하나씩 꺼내서 hobby 라는 임시 이름으로 씁니다.
+    th:each 가 붙은 li 가 취미 개수만큼 반복해서 만들어집니다. (운동, 독서 두 개이면 li 가 두 번 만들어집니다)
+  */-->
+  <ul>
+    <li th:each="hobby : *{hobbies}">
+      <!--/*
+      [타임리프 속성] th:text="${hobby}"   (첫 번째 span 태그 안)
+        ${hobby} : th:each 에서 정한 반복 변수입니다. 지금 반복 중인 취미 글자 한 개가 들어 있습니다.
+        반복 변수는 Model 의 값이 아니므로 ${...} 로 씁니다. (*{...} 는 th:object 기준 객체 안에서만 찾습니다)
+      */-->
+      <span th:text="${hobby}"></span>
+      <!--/*
+      [타임리프 조건] th:if="${hobby == '운동'}"   (두 번째 span 태그)
+        지금 취미가 '운동' 과 같을 때만 "(대표 취미)" 글자가 화면에 남습니다.
+        같지 않으면 span 태그 자체가 화면에서 사라집니다. (실제 확인 : 독서 항목에는 (대표 취미)가 없습니다)
+        이 식은 자바스크립트가 아니라 타임리프 식입니다. 글자 비교도 == 를 씁니다.
+      */-->
+      <span th:if="${hobby == '운동'}">(대표 취미)</span>
+    </li>
+  </ul>
+</div>
+
+<!--/*
+[타임리프 속성] th:href="@{/api/articles/{id}(id=${person.id})}"   (a 태그)
+  @{...} : 주소를 만드는 문법입니다. {id} 자리에 person.id 값(1)이 들어갑니다.
+  결과 주소 : /api/articles/1 (실제 확인)
+*/-->
+<a th:href="@{/api/articles/{id}(id=${person.id})}">글 보기</a>
+</body>
+</html>
